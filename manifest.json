@@ -1,0 +1,28 @@
+{
+  "name": "Sadewa Sprite Builder",
+  "short_name": "SadewaSprite",
+  "description": "Build sprite sheets from PNG animation frames with real-time isometric camera preview for RTS games.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f1117",
+  "theme_color": "#7c3aed",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='80' fill='%237c3aed'/><text y='.9em' font-size='400' x='50' fill='white'>🎮</text></svg>",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["graphics", "productivity", "utilities"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "New Project",
+      "short_name": "New",
+      "description": "Start a new sprite sheet project",
+      "url": "/?action=new"
+    }
+  ]
+}

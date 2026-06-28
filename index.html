@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#7c3aed" />
+  <meta name="description" content="Build sprite sheets from PNG animation frames with real-time isometric RTS camera preview." />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="SadewaSprite" />
+
+  <title>Sadewa Sprite Builder</title>
+
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json" />
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════
+     APP SHELL
+     ══════════════════════════════════════════════════════════════ -->
+<div id="app">
+
+  <!-- ── Top Header ──────────────────────────────────────────── -->
+  <header id="header">
+    <!-- Brand -->
+    <a class="header-brand" href="#">
+      <div class="logo-icon">🎮</div>
+      <div>
+        <div class="brand-name">Sadewa Sprite Builder</div>
+        <div class="brand-version">v1.0 · PWA</div>
+      </div>
+    </a>
+
+    <!-- Panel Tabs -->
+    <nav class="header-tabs">
+      <button class="header-tab active" data-tab="builder">🎨 Builder</button>
+      <button class="header-tab" data-tab="camera">📷 Camera Preview</button>
+      <button class="header-tab" data-tab="export">📦 Export</button>
+    </nav>
+
+    <!-- Header Actions -->
+    <div class="header-actions">
+      <button class="btn btn-secondary btn-sm" id="btn-open-files" title="Open PNG files">
+        📂 Open Files
+      </button>
+      <button class="btn btn-secondary btn-sm" id="btn-open-folder" title="Open animation folder">
+        🗂 Open Folder
+      </button>
+      <button class="btn btn-primary btn-sm" id="btn-build" title="Rebuild sprite sheet">
+        ⚡ Build
+      </button>
+    </div>
+  </header>
+
+  <!-- ── Main Content ────────────────────────────────────────── -->
+  <main id="main">
+
+    <!-- ══════════════════════════════════════════════════════
+         PANEL: BUILDER
+         ══════════════════════════════════════════════════════ -->
+    <div class="panel active" id="panel-builder">
+
+      <!-- Left Sidebar -->
+      <aside class="sidebar">
+        <div class="sidebar-scroll">
+
+          <!-- Drop Zone -->
+          <div class="drop-zone" id="drop-zone">
+            <span class="drop-icon">🖼</span>
+            <div class="drop-title">Drop PNG Files Here</div>
+            <div class="drop-sub">
+              Or click to browse<br/>
+              Supports animation folders<br/>
+              <code style="font-size:0.68rem;opacity:0.6">idle_01.png, idle_02.png...</code>
+            </div>
+          </div>
+
+          <!-- Hidden file inputs -->
+          <input type="file" id="file-input" accept=".png,image/png" multiple style="display:none" />
+          <input type="file" id="folder-input" accept=".png,image/png" multiple webkitdirectory style="display:none" />
+
+          <!-- Loaded Animations -->
+          <div class="section-card">
+            <div class="section-header">
+              <div class="section-header-left">
+                <span class="section-icon">🎬</span>
+                <span class="section-title">Animations</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <span class="badge badge-accent" id="stat-groups">0</span>
+                <span class="section-chevron">▼</span>
+              </div>
+            </div>
+            <div class="section-body" style="padding:0">
+              <div id="group-list">
+                <div class="empty-state" style="padding:20px">
+                  <div class="empty-icon">📂</div>
+                  <div class="empty-sub">Drop PNG files to start</div>
+                </div>
+              </div>
+              <div style="padding:10px;border-top:1px solid var(--border)">
+                <button class="btn btn-secondary btn-sm btn-full" id="btn-clear">🗑 Clear All</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Frame Size -->
+          <div class="section-card">
+            <div class="section-header">
+              <div class="section-header-left">
+                <span class="section-icon">📐</span>
+                <span class="section-title">Frame Size</span>
+              </div>
+              <span class="section-chevron">▼</span>
+            </div>
+            <div class="section-body">
+              <div class="seg-control">
+                <button class="seg-btn" data-framesize="64">64</button>
+                <button class="seg-btn active" data-framesize="128">128</button>
+                <button class="seg-btn" data-framesize="256">256</button>
+                <button class="seg-btn" data-framesize="512">512</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Columns -->
+          <div class="section-card">
+            <div class="section-header">
+              <div class="section-header-left">
+                <span class="section-icon">⬜</span>
+                <span class="section-title">Columns</span>
+              </div>
+              <span class="section-chevron">▼</span>
+            </div>
+            <div class="section-body">
+              <div class="seg-control">
+                <button class="seg-btn" data-columns="4">4</button>
+                <button class="seg-btn active" data-columns="8">8</button>
+                <button class="seg-btn" data-columns="16">16</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Processing Options -->
+          <div class="section-card">
+            <div class="section-header">
+              <div class="section-header-left">
+                <span class="section-icon">⚙️</span>
+                <span class="section-title">Processing</span>
+              </div>
+              <span class="section-chevron">▼</span>
+            </div>
+            <div class="section-body">
+              <div class="toggle-row">
+                <label class="toggle-label">✂️ Auto Crop Transparent</label>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="toggle-autocrop" checked />
+                  <span class="toggle-track"></span>
+                </label>
+              </div>
+              <div class="toggle-row">
+                <label class="toggle-label">🎯 Auto Center Sprite</label>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="toggle-autocenter" checked />
+                  <span class="toggle-track"></span>
+                </label>
+              </div>
+              <div class="toggle-row">
+                <label class="toggle-label">📏 Auto Padding</label>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="toggle-autopadding" checked />
+                  <span class="toggle-track"></span>
+                </label>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Padding (px)</label>
+                <input type="number" id="padding-input" value="2" min="0" max="32" />
+              </div>
+
+              <div class="toggle-row">
+                <label class="toggle-label">🔲 Transparent Background</label>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="toggle-transparent" checked />
+                  <span class="toggle-track"></span>
+                </label>
+              </div>
+
+              <div class="form-row" id="bg-color-row" style="display:none">
+                <label class="form-label" style="flex:1">BG Color</label>
+                <input type="color" id="bg-color" value="#000000" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Sheet Options -->
+          <div class="section-card">
+            <div class="section-header">
+              <div class="section-header-left">
+                <span class="section-icon">🗂</span>
+                <span class="section-title">Sheet Options</span>
+              </div>
+              <span class="section-chevron">▼</span>
+            </div>
+            <div class="section-body">
+              <div class="toggle-row">
+                <label class="toggle-label">📊 Show Grid</label>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="toggle-grid" checked />
+                  <span class="toggle-track"></span>
+                </label>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Project Name</label>
+                <input type="text" id="project-name"
+                  style="background:rgba(0,0,0,0.4);color:var(--text-primary);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:0.8rem;outline:none;width:100%"
+                  placeholder="e.g. barbarian_idle" />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">FPS (Animation)</label>
+                <input type="number" id="fps-input" value="12" min="1" max="60" />
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /sidebar-scroll -->
+      </aside>
+
+      <!-- Center Canvas -->
+      <div class="content-center">
+        <!-- Toolbar -->
+        <div class="content-toolbar">
+          <div class="toolbar-left">
+            <span class="badge badge-cyan" id="stat-frames">0</span>
+            <span style="font-size:0.75rem;color:var(--text-muted)">frames</span>
+
+            <div class="divider" style="width:1px;height:18px;background:var(--border);margin:0 4px"></div>
+
+            <span style="font-size:0.72rem;color:var(--text-muted)">Sheet:</span>
+            <span class="badge badge-accent" id="stat-sheet-size">—</span>
+
+            <div class="divider" style="width:1px;height:18px;background:var(--border);margin:0 4px"></div>
+
+            <span style="font-size:0.72rem;color:var(--text-muted)">Frame:</span>
+            <span class="badge badge-accent" id="stat-frame-size">128×128</span>
+          </div>
+          <div class="toolbar-right">
+            <label class="form-label" style="margin:0">Zoom</label>
+            <input type="range" id="preview-zoom" min="25" max="300" value="100"
+              style="width:80px" />
+            <span class="slider-value" id="preview-zoom-val">100%</span>
+          </div>
+        </div>
+
+        <!-- Canvas Area -->
+        <div class="content-canvas-area" id="sprite-canvas-container">
+          <div class="empty-state">
+            <div class="empty-icon">🎨</div>
+            <div class="empty-title">No Sprite Sheet</div>
+            <div class="empty-sub">Drop PNG files into the builder to generate a sprite sheet</div>
+          </div>
+        </div>
+
+        <!-- Animation Player Bar -->
+        <div class="anim-player">
+          <button class="anim-player-btn" id="btn-first-frame" title="First Frame">⏮</button>
+          <button class="anim-player-btn" id="btn-prev-frame" title="Previous Frame">⏪</button>
+          <button class="anim-player-btn" id="btn-play" title="Play/Pause">▶</button>
+          <button class="anim-player-btn" id="btn-next-frame" title="Next Frame">⏩</button>
+          <button class="anim-player-btn" id="btn-last-frame" title="Last Frame">⏭</button>
+
+          <div class="anim-scrubber" id="anim-scrubber">
+            <div class="anim-scrubber-fill" id="scrubber-fill" style="width:0%"></div>
+          </div>
+
+          <span class="fps-label" id="frame-label">0 / 0</span>
+
+          <label class="fps-label">FPS</label>
+          <input type="range" id="player-fps" min="1" max="60" value="12"
+            style="width:60px" />
+          <span class="fps-label" id="player-fps-val">12 fps</span>
+        </div>
+
+        <!-- Stats Bar -->
+        <div class="stats-bar">
+          <div class="stat-item">
+            <span class="stat-label">Groups:</span>
+            <span class="stat-value" id="stat-groups-bottom">0</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Frames:</span>
+            <span class="stat-value" id="stat-frames-bottom">0</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Cols:</span>
+            <span class="stat-value" id="stat-cols">8</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Rows:</span>
+            <span class="stat-value" id="stat-rows">0</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">FPS:</span>
+            <span class="stat-value" id="stat-fps">12</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Panel -->
+      <aside class="right-panel">
+        <div class="panel-tabs">
+          <button class="panel-tab active" data-rtab="frames">Frames</button>
+          <button class="panel-tab" data-rtab="info">Info</button>
+          <button class="panel-tab" data-rtab="json">JSON</button>
+        </div>
+
+        <!-- Frames tab -->
+        <div class="right-panel-section panel-body" id="rt-frames">
+          <div class="frames-grid" id="frames-grid">
+            <div class="empty-state" style="grid-column:1/-1">
+              <div class="empty-icon" style="font-size:32px">🎞</div>
+              <div class="empty-sub">No frames loaded</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Info tab -->
+        <div class="right-panel-section panel-body hidden" id="rt-info">
+          <div style="padding:12px;display:flex;flex-direction:column;gap:4px;">
+            <div class="info-row">
+              <span class="info-key">Active Group</span>
+              <span class="info-val" id="stat-active-group">—</span>
+            </div>
+            <div class="info-row">
+              <span class="info-key">Frame Count</span>
+              <span class="info-val" id="stat-frame-count">0</span>
+            </div>
+            <div class="info-row">
+              <span class="info-key">Frame Size</span>
+              <span class="info-val" id="stat-framesize-info">128×128</span>
+            </div>
+            <div class="info-row">
+              <span class="info-key">Columns</span>
+              <span class="info-val" id="stat-cols-info">8</span>
+            </div>
+            <div class="info-row">
+              <span class="info-key">Rows</span>
+              <span class="info-val" id="stat-rows-info">0</span>
+            </div>
+            <div class="info-row">
+              <span class="info-key">Sheet Size</span>
+              <span class="info-val" id="stat-sheet-info">—</span>
+            </div>
+            <div class="info-row">
+              <span class="info-key">FPS</span>
+              <span class="info-val" id="stat-fps-info">12</span>
+            </div>
+            <div class="info-row">
+              <span class="info-key">Transparent</span>
+              <span class="info-val" id="stat-transparent-info">Yes</span>
+            </div>
+            <div class="info-row">
+              <span class="info-key">Auto Crop</span>
+              <span class="info-val" id="stat-autocrop-info">Yes</span>
+            </div>
+            <div class="info-row">
+              <span class="info-key">Padding</span>
+              <span class="info-val" id="stat-padding-info">2px</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- JSON tab -->
+        <div class="right-panel-section panel-body hidden" id="rt-json">
+          <div style="padding:10px">
+            <pre id="json-preview"
+              style="font-size:0.65rem;color:var(--text-secondary);line-height:1.5;white-space:pre-wrap;word-break:break-all;font-family:monospace">// No data yet</pre>
+          </div>
+        </div>
+      </aside>
+
+    </div><!-- /panel-builder -->
+
+    <!-- ══════════════════════════════════════════════════════
+         PANEL: CAMERA PREVIEW
+         ══════════════════════════════════════════════════════ -->
+    <div class="panel" id="panel-camera">
+
+      <!-- Camera Left Sidebar -->
+      <aside class="sidebar">
+        <div class="sidebar-scroll">
+
+          <!-- Presets -->
+          <div class="section-card">
+            <div class="section-header">
+              <div class="section-header-left">
+                <span class="section-icon">🎮</span>
+                <span class="section-title">Game Presets</span>
+              </div>
+              <span class="section-chevron">▼</span>
+            </div>
+            <div class="section-body">
+              <div class="preset-grid">
+                <button class="preset-btn active" data-preset="rts">
+                  🏰 Classic RTS
+                </button>
+                <button class="preset-btn" data-preset="topdown">
+                  🔭 Top Down
+                </button>
+                <button class="preset-btn" data-preset="moba">
+                  ⚔️ MOBA
+                </button>
+                <button class="preset-btn" data-preset="custom" style="opacity:0.5;cursor:default">
+                  🎛 Custom
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Camera Height -->
+          <div class="section-card">
+            <div class="section-header">
+              <div class="section-header-left">
+                <span class="section-icon">📐</span>
+                <span class="section-title">Camera Height</span>
+              </div>
+              <span class="section-chevron">▼</span>
+            </div>
+            <div class="section-body">
+              <div class="slider-container">
+                <div class="slider-header">
+                  <label class="form-label">Angle</label>
+                  <span class="slider-value" id="cam-height-val">60°</span>
+                </div>
+                <input type="range" id="cam-height" min="0" max="90" value="60" />
+                <div style="display:flex;justify-content:space-between;margin-top:2px">
+                  <span style="font-size:0.65rem;color:var(--text-muted)">0° Side</span>
+                  <span style="font-size:0.65rem;color:var(--text-muted)">90° Top</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Projection -->
+          <div class="section-card">
+            <div class="section-header">
+              <div class="section-header-left">
+                <span class="section-icon">📷</span>
+                <span class="section-title">Projection</span>
+              </div>
+              <span class="section-chevron">▼</span>
+            </div>
+            <div class="section-body">
+              <div class="seg-control">
+                <button class="seg-btn" data-projection="orthographic">Orthographic</button>
+                <button class="seg-btn active" data-projection="isometric">Isometric</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Camera Rotation -->
+          <div class="section-card">
+            <div class="section-header">
+              <div class="section-header-left">
+                <span class="section-icon">🧭</span>
+                <span class="section-title">Camera Rotation</span>
+              </div>
+              <span class="section-chevron">▼</span>
+            </div>
+            <div class="section-body">
+              <div class="direction-grid">
+                <button class="dir-btn" data-camrot="0">
+                  <span class="dir-arrow">↑</span>
+                  <span class="dir-label">N / 0°</span>
+                </button>
+                <button class="dir-btn active" data-camrot="45">
+                  <span class="dir-arrow">↗</span>
+                  <span class="dir-label">NE / 45°</span>
+                </button>
+                <button class="dir-btn" data-camrot="90">
+                  <span class="dir-arrow">→</span>
+                  <span class="dir-label">E / 90°</span>
+                </button>
+                <button class="dir-btn" data-camrot="135">
+                  <span class="dir-arrow">↘</span>
+                  <span class="dir-label">SE / 135°</span>
+                </button>
+                <button class="dir-btn" data-camrot="180">
+                  <span class="dir-arrow">↓</span>
+                  <span class="dir-label">S / 180°</span>
+                </button>
+                <button class="dir-btn" data-camrot="225">
+                  <span class="dir-arrow">↙</span>
+                  <span class="dir-label">SW / 225°</span>
+                </button>
+                <button class="dir-btn" data-camrot="270">
+                  <span class="dir-arrow">←</span>
+                  <span class="dir-label">W / 270°</span>
+                </button>
+                <button class="dir-btn" data-camrot="315">
+                  <span class="dir-arrow">↖</span>
+                  <span class="dir-label">NW / 315°</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Zoom -->
+          <div class="section-card">
+            <div class="section-header">
+              <div class="section-header-left">
+                <span class="section-icon">🔍</span>
+                <span class="section-title">Zoom</span>
+              </div>
+              <span class="section-chevron">▼</span>
+            </div>
+            <div class="section-body">
+              <div class="slider-container">
+                <div class="slider-header">
+                  <label class="form-label">Scale</label>
+                  <span class="slider-value" id="cam-zoom-val">100%</span>
+                </div>
+                <input type="range" id="cam-zoom" min="25" max="300" value="100" />
+                <div style="display:flex;justify-content:space-between;margin-top:2px">
+                  <span style="font-size:0.65rem;color:var(--text-muted)">25%</span>
+                  <span style="font-size:0.65rem;color:var(--text-muted)">300%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Character Rotation -->
+          <div class="section-card">
+            <div class="section-header">
+              <div class="section-header-left">
+                <span class="section-icon">🔄</span>
+                <span class="section-title">Character Direction</span>
+              </div>
+              <span class="section-chevron">▼</span>
+            </div>
+            <div class="section-body">
+              <div class="direction-grid">
+                <button class="dir-btn active" data-charrot="0">
+                  <span class="dir-arrow">↑</span>
+                  <span class="dir-label">N</span>
+                </button>
+                <button class="dir-btn" data-charrot="45">
+                  <span class="dir-arrow">↗</span>
+                  <span class="dir-label">NE</span>
+                </button>
+                <button class="dir-btn" data-charrot="90">
+                  <span class="dir-arrow">→</span>
+                  <span class="dir-label">E</span>
+                </button>
+                <button class="dir-btn" data-charrot="135">
+                  <span class="dir-arrow">↘</span>
+                  <span class="dir-label">SE</span>
+                </button>
+                <button class="dir-btn" data-charrot="180">
+                  <span class="dir-arrow">↓</span>
+                  <span class="dir-label">S</span>
+                </button>
+                <button class="dir-btn" data-charrot="225">
+                  <span class="dir-arrow">↙</span>
+                  <span class="dir-label">SW</span>
+                </button>
+                <button class="dir-btn" data-charrot="270">
+                  <span class="dir-arrow">←</span>
+                  <span class="dir-label">W</span>
+                </button>
+                <button class="dir-btn" data-charrot="315">
+                  <span class="dir-arrow">↖</span>
+                  <span class="dir-label">NW</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /sidebar-scroll -->
+      </aside>
+
+      <!-- Camera Viewport Center -->
+      <div class="camera-main">
+        <!-- Camera Toolbar -->
+        <div class="content-toolbar">
+          <div class="toolbar-left">
+            <span style="font-size:0.75rem;color:var(--text-muted)">Live Camera Preview</span>
+            <span class="badge badge-green">● LIVE</span>
+          </div>
+          <div class="toolbar-right">
+            <button class="btn btn-secondary btn-sm" id="btn-export-camera">
+              📸 Export View
+            </button>
+          </div>
+        </div>
+
+        <!-- Viewport -->
+        <div class="camera-viewport" id="camera-viewport">
+          <canvas id="camera-canvas" class="camera-canvas"></canvas>
+          <canvas id="camera-grid-canvas" class="camera-canvas" style="pointer-events:none;opacity:0.3"></canvas>
+
+          <!-- Overlay Info -->
+          <div class="camera-overlay-info" id="camera-info">
+            <div>Preset <span class="info-val">RTS</span></div>
+            <div>Height <span class="info-val">60°</span></div>
+            <div>Zoom <span class="info-val">100%</span></div>
+          </div>
+
+          <!-- Safe Area Warning -->
+          <div class="safe-area-warn" id="safe-area-warn">
+            ⚠️ Sprite exceeds safe area boundaries
+          </div>
+
+          <!-- Empty Placeholder -->
+          <div id="camera-empty" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none">
+            <div class="empty-state">
+              <div class="empty-icon">📷</div>
+              <div class="empty-title">No Sprite Loaded</div>
+              <div class="empty-sub">Go to Builder tab and load PNG files first to preview them here</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Animation Player (Camera) -->
+        <div class="anim-player">
+          <button class="anim-player-btn" id="cam-btn-first-frame" title="First Frame">⏮</button>
+          <button class="anim-player-btn" id="cam-btn-prev-frame" title="Previous Frame">⏪</button>
+          <button class="anim-player-btn" id="cam-btn-play" title="Play/Pause">▶</button>
+          <button class="anim-player-btn" id="cam-btn-next-frame" title="Next Frame">⏩</button>
+          <button class="anim-player-btn" id="cam-btn-last-frame" title="Last Frame">⏭</button>
+
+          <div class="anim-scrubber" id="cam-anim-scrubber">
+            <div class="anim-scrubber-fill" id="cam-scrubber-fill" style="width:0%"></div>
+          </div>
+
+          <span class="fps-label" id="cam-frame-label">0 / 0</span>
+
+          <label class="fps-label">FPS</label>
+          <input type="range" id="cam-player-fps" min="1" max="60" value="12" style="width:60px" />
+          <span class="fps-label" id="cam-player-fps-val">12 fps</span>
+        </div>
+      </div>
+
+      <!-- Camera Right Sidebar -->
+      <aside class="right-panel">
+        <div class="sidebar-scroll" style="padding:12px;display:flex;flex-direction:column;gap:10px;">
+
+          <!-- Lighting -->
+          <div class="section-card">
+            <div class="section-header">
+              <div class="section-header-left">
+                <span class="section-icon">💡</span>
+                <span class="section-title">Lighting</span>
+              </div>
+              <span class="section-chevron">▼</span>
+            </div>
+            <div class="section-body">
+              <div class="direction-grid">
+                <button class="dir-btn active" data-lighting="topLeft" title="Top Left">
+                  <span class="dir-arrow">↖</span>
+                  <span class="dir-label">Top Left</span>
+                </button>
+                <button class="dir-btn" data-lighting="topRight" title="Top Right">
+                  <span class="dir-arrow">↗</span>
+                  <span class="dir-label">Top Right</span>
+                </button>
+                <button class="dir-btn" data-lighting="bottomLeft" title="Bottom Left">
+                  <span class="dir-arrow">↙</span>
+                  <span class="dir-label">Bot Left</span>
+                </button>
+                <button class="dir-btn" data-lighting="bottomRight" title="Bottom Right">
+                  <span class="dir-arrow">↘</span>
+                  <span class="dir-label">Bot Right</span>
+                </button>
+              </div>
+
+              <div class="toggle-row">
+                <label class="toggle-label">☁️ Shadow</label>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="toggle-shadow" checked />
+                  <span class="toggle-track"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Background -->
+          <div class="section-card">
+            <div class="section-header">
+              <div class="section-header-left">
+                <span class="section-icon">🖼</span>
+                <span class="section-title">Background</span>
+              </div>
+              <span class="section-chevron">▼</span>
+            </div>
+            <div class="section-body">
+              <div class="seg-control">
+                <button class="seg-btn" data-cambg="transparent">None</button>
+                <button class="seg-btn active" data-cambg="checker">Checker</button>
+                <button class="seg-btn" data-cambg="solid">Solid</button>
+              </div>
+              <div class="form-row" id="cam-bg-color-row" style="display:none">
+                <label class="form-label" style="flex:1">Color</label>
+                <input type="color" id="cam-bg-color" value="#1a2035" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Grid & Safe Area -->
+          <div class="section-card">
+            <div class="section-header">
+              <div class="section-header-left">
+                <span class="section-icon">📏</span>
+                <span class="section-title">Grid & Safe Area</span>
+              </div>
+              <span class="section-chevron">▼</span>
+            </div>
+            <div class="section-body">
+              <div class="toggle-row">
+                <label class="toggle-label">📊 Show Grid</label>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="toggle-cam-grid" checked />
+                  <span class="toggle-track"></span>
+                </label>
+              </div>
+              <div class="toggle-row">
+                <label class="toggle-label">🔲 Safe Area</label>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="toggle-safe-area" checked />
+                  <span class="toggle-track"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Info -->
+          <div class="section-card">
+            <div class="section-header">
+              <div class="section-header-left">
+                <span class="section-icon">ℹ️</span>
+                <span class="section-title">Camera Info</span>
+              </div>
+              <span class="section-chevron">▼</span>
+            </div>
+            <div class="section-body" style="gap:3px">
+              <div class="info-row">
+                <span class="info-key">Projection</span>
+                <span class="info-val">Isometric</span>
+              </div>
+              <div class="info-row">
+                <span class="info-key">Height</span>
+                <span class="info-val">60°</span>
+              </div>
+              <div class="info-row">
+                <span class="info-key">Rotation</span>
+                <span class="info-val">45°</span>
+              </div>
+              <div class="info-row">
+                <span class="info-key">Zoom</span>
+                <span class="info-val">100%</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </aside>
+
+    </div><!-- /panel-camera -->
+
+    <!-- ══════════════════════════════════════════════════════
+         PANEL: EXPORT
+         ══════════════════════════════════════════════════════ -->
+    <div class="panel" id="panel-export">
+      <div style="flex:1;overflow-y:auto;padding:24px;display:flex;flex-direction:column;gap:20px;max-width:800px;margin:0 auto;width:100%">
+
+        <div>
+          <h2 style="font-size:1.2rem;color:var(--text-primary);margin-bottom:4px">Export</h2>
+          <p style="font-size:0.8rem;color:var(--text-muted)">Download your sprite sheet as PNG and JSON metadata</p>
+        </div>
+
+        <!-- Export Cards -->
+        <div class="export-options">
+          <div class="export-card" id="btn-export-png">
+            <span class="export-icon">🖼</span>
+            <span class="export-title">Sprite Sheet PNG</span>
+            <span class="export-desc">Full sprite sheet with all frames merged into one PNG</span>
+            <button class="btn btn-primary btn-sm" style="margin-top:4px">Download PNG</button>
+          </div>
+
+          <div class="export-card" id="btn-export-json">
+            <span class="export-icon">📋</span>
+            <span class="export-title">JSON Metadata</span>
+            <span class="export-desc">Frame data, dimensions, and animation info as JSON</span>
+            <button class="btn btn-secondary btn-sm" style="margin-top:4px">Download JSON</button>
+          </div>
+
+          <div class="export-card" id="btn-export-all">
+            <span class="export-icon">📦</span>
+            <span class="export-title">PNG + JSON Bundle</span>
+            <span class="export-desc">Export both PNG sprite sheet and JSON metadata at once</span>
+            <button class="btn btn-cyan btn-sm" style="margin-top:4px">Download Bundle</button>
+          </div>
+
+          <div class="export-card" id="btn-export-individual">
+            <span class="export-icon">🗃</span>
+            <span class="export-title">Individual Frames</span>
+            <span class="export-desc">Export each frame as a separate PNG file</span>
+            <button class="btn btn-secondary btn-sm" style="margin-top:4px">Download Frames</button>
+          </div>
+        </div>
+
+        <!-- JSON Preview -->
+        <div class="section-card">
+          <div class="section-header open">
+            <div class="section-header-left">
+              <span class="section-icon">📋</span>
+              <span class="section-title">JSON Preview</span>
+            </div>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-secondary btn-sm btn-icon" onclick="copyJSON()" title="Copy to Clipboard">📋</button>
+            </div>
+          </div>
+          <div class="section-body">
+            <pre id="json-preview-export"
+              style="font-size:0.72rem;color:var(--text-secondary);line-height:1.6;white-space:pre-wrap;word-break:break-all;font-family:monospace;max-height:300px;overflow-y:auto;background:rgba(0,0,0,0.3);padding:12px;border-radius:8px;border:1px solid var(--border)">// No data yet</pre>
+          </div>
+        </div>
+
+        <!-- Export Settings -->
+        <div class="section-card">
+          <div class="section-header open">
+            <div class="section-header-left">
+              <span class="section-icon">⚙️</span>
+              <span class="section-title">Export Settings</span>
+            </div>
+          </div>
+          <div class="section-body">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              <div class="form-group">
+                <label class="form-label">Output Format</label>
+                <select>
+                  <option>PNG (Lossless)</option>
+                  <option disabled>WebP (Coming Soon)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Filename</label>
+                <input type="text" value="sprite"
+                  style="background:rgba(0,0,0,0.4);color:var(--text-primary);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:0.8rem;outline:none;width:100%"
+                  placeholder="output filename" />
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:4px">
+              <div class="info-row" style="flex-direction:column;align-items:flex-start;gap:2px">
+                <span class="info-key">Frame Width</span>
+                <span class="info-val" id="export-frameW">128px</span>
+              </div>
+              <div class="info-row" style="flex-direction:column;align-items:flex-start;gap:2px">
+                <span class="info-key">Frame Height</span>
+                <span class="info-val" id="export-frameH">128px</span>
+              </div>
+              <div class="info-row" style="flex-direction:column;align-items:flex-start;gap:2px">
+                <span class="info-key">Total Frames</span>
+                <span class="info-val" id="export-frames">0</span>
+              </div>
+              <div class="info-row" style="flex-direction:column;align-items:flex-start;gap:2px">
+                <span class="info-key">Columns</span>
+                <span class="info-val" id="export-cols">8</span>
+              </div>
+              <div class="info-row" style="flex-direction:column;align-items:flex-start;gap:2px">
+                <span class="info-key">FPS</span>
+                <span class="info-val" id="export-fps">12</span>
+              </div>
+              <div class="info-row" style="flex-direction:column;align-items:flex-start;gap:2px">
+                <span class="info-key">Sheet Size</span>
+                <span class="info-val" id="export-sheet">—</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Future Features Notice -->
+        <div class="section-card">
+          <div class="section-header open">
+            <div class="section-header-left">
+              <span class="section-icon">🚀</span>
+              <span class="section-title">Coming Soon</span>
+            </div>
+          </div>
+          <div class="section-body">
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px">
+              <div class="btn btn-secondary btn-sm" style="opacity:0.5;cursor:default">🎬 GIF Export</div>
+              <div class="btn btn-secondary btn-sm" style="opacity:0.5;cursor:default">📽 APNG Export</div>
+              <div class="btn btn-secondary btn-sm" style="opacity:0.5;cursor:default">🎥 MP4 to Sheet</div>
+              <div class="btn btn-secondary btn-sm" style="opacity:0.5;cursor:default">🤖 AI Auto Crop</div>
+              <div class="btn btn-secondary btn-sm" style="opacity:0.5;cursor:default">🧠 AI Alignment</div>
+              <div class="btn btn-secondary btn-sm" style="opacity:0.5;cursor:default">📦 Auto Atlas Pack</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div><!-- /panel-export -->
+
+  </main><!-- /main -->
+
+</div><!-- /app -->
+
+<!-- ── Loading Overlay ─────────────────────────────────────────── -->
+<div id="loading-overlay">
+  <div class="loading-spinner"></div>
+  <div class="loading-text" id="loading-text">Processing files...</div>
+  <div class="progress-bar loading-bar">
+    <div class="progress-fill" id="loading-bar-fill" style="width:0%"></div>
+  </div>
+</div>
+
+<!-- ── Toast Container ─────────────────────────────────────────── -->
+<div id="toast-container"></div>
+
+<!-- ── PWA Install Banner ───────────────────────────────────────── -->
+<div id="install-banner">
+  <div class="install-icon">📲</div>
+  <div class="install-text">
+    <div class="install-title">Install Sadewa Sprite Builder</div>
+    <div class="install-sub">Works offline · No internet required</div>
+  </div>
+  <div class="install-actions">
+    <button class="btn btn-primary btn-sm" id="btn-install">Install</button>
+    <button class="btn btn-secondary btn-sm" id="btn-dismiss-install">✕</button>
+  </div>
+</div>
+
+<!-- ── Scripts ─────────────────────────────────────────────────── -->
+<script src="app.js"></script>
+
+<script>
+  /**
+   * Additional inline helpers & fixes
+   */
+
+  // ── Sync duplicate IDs in camera panel ───────────────────────
+  // The camera panel reuses player IDs. We'll handle them differently
+  // by using event delegation from the panels.
+
+  // ── Copy JSON to clipboard ────────────────────────────────────
+  function copyJSON() {
+    const data = ExportManager.buildJSON();
+    const json = JSON.stringify(data, null, 2);
+    navigator.clipboard?.writeText(json)
+      .then(() => ToastManager.show('JSON copied to clipboard!', 'success'))
+      .catch(() => ToastManager.show('Copy failed — use the download button', 'error'));
+  }
+
+  // ── Update export panel info ──────────────────────────────────
+  function updateExportPanel() {
+    const group = state.groups[state.activeGroup] || [];
+    const fc    = state.frameSize;
+    const cols  = state.columns;
+    const rows  = Math.ceil(group.length / cols);
+
+    setText2('export-frameW', `${fc}px`);
+    setText2('export-frameH', `${fc}px`);
+    setText2('export-frames', group.length);
+    setText2('export-cols',   cols);
+    setText2('export-fps',    state.fps);
+    setText2('export-sheet',  group.length ? `${cols * fc} × ${rows * fc}` : '—');
+
+    // JSON preview in export tab
+    const el = document.getElementById('json-preview-export');
+    if (el) {
+      if (!state.activeGroup) {
+        el.textContent = '// No data yet';
+      } else {
+        el.textContent = JSON.stringify(ExportManager.buildJSON(), null, 2);
+      }
+    }
+  }
+
+  function setText2(id, val) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val;
+  }
+
+  // ── Patch UIController.updateStats to also call updateExportPanel ──
+  const _origUpdateStats = UIController.updateStats.bind(UIController);
+  UIController.updateStats = function() {
+    _origUpdateStats();
+    updateExportPanel();
+
+    // Sync right panel info tab
+    const group = state.groups[state.activeGroup] || [];
+    const fc    = state.frameSize;
+    const cols  = state.columns;
+    const rows  = Math.ceil(group.length / cols);
+
+    setText2('stat-active-group',    state.activeGroup || '—');
+    setText2('stat-frame-count',     group.length);
+    setText2('stat-framesize-info',  `${fc}×${fc}`);
+    setText2('stat-cols-info',       cols);
+    setText2('stat-rows-info',       rows);
+    setText2('stat-sheet-info',      group.length ? `${cols * fc}×${rows * fc}` : '—');
+    setText2('stat-fps-info',        state.fps);
+    setText2('stat-transparent-info', state.transparentBg ? 'Yes' : 'No');
+    setText2('stat-autocrop-info',   state.autoCrop   ? 'Yes' : 'No');
+    setText2('stat-padding-info',    `${state.autoPadding ? state.padding : 0}px`);
+
+    // Sync bottom stats
+    setText2('stat-groups-bottom',  Object.keys(state.groups).length);
+    setText2('stat-frames-bottom',  group.length);
+  };
+
+  // ── Handle camera panel empty state ──────────────────────────
+  const _origSwitchPanel = UIController.switchPanel.bind(UIController);
+  UIController.switchPanel = function(name) {
+    _origSwitchPanel(name);
+    const camEmpty = document.getElementById('camera-empty');
+    if (camEmpty) {
+      const hasSpriteData = state.spriteCanvas && Object.keys(state.groups).length > 0;
+      camEmpty.style.display = hasSpriteData ? 'none' : 'flex';
+    }
+    if (name === 'export') updateExportPanel();
+  };
+
+  // ── Patch SpriteBuilder.build to hide camera empty ────────────
+  const _origBuild = SpriteBuilder.build.bind(SpriteBuilder);
+  SpriteBuilder.build = async function() {
+    await _origBuild();
+    const camEmpty = document.getElementById('camera-empty');
+    if (camEmpty) {
+      const hasSpriteData = state.spriteCanvas && Object.keys(state.groups).length > 0;
+      camEmpty.style.display = hasSpriteData ? 'none' : 'flex';
+    }
+  };
+
+  // ── Handle duplicate player IDs between builder & camera panels
+  // The camera panel player buttons use same IDs — they work
+  // because only one panel is visible at a time. However, to be
+  // safe, we'll re-bind after DOM is ready.
+  document.addEventListener('DOMContentLoaded', () => {
+    // Ensure section collapsibles are properly initialized
+    // (some may have been created after DOMContentLoaded)
+    setTimeout(() => {
+      UIController.initCollapsibles();
+    }, 100);
+  });
+</script>
+
+</body>
+</html>
