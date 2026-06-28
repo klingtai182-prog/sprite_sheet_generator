@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0d0f14" />
+  <meta name="description" content="Sprite sheet builder with isometric RTS camera preview for indie game developers" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Sadewa" />
+  <link rel="manifest" href="manifest.json" />
+  <title>Sadewa Sprite Builder</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ══════════════════════════════════
+       HEADER
+  ══════════════════════════════════ -->
+  <header class="app-header">
+    <div class="header-brand">
+      <div class="brand-icon" aria-hidden="true">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <rect x="2" y="2" width="11" height="11" rx="2" fill="#7c6bff"/>
+          <rect x="15" y="2" width="11" height="11" rx="2" fill="#00d4aa"/>
+          <rect x="2" y="15" width="11" height="11" rx="2" fill="#00d4aa"/>
+          <rect x="15" y="15" width="11" height="11" rx="2" fill="#7c6bff"/>
+        </svg>
+      </div>
+      <div>
+        <h1 class="brand-name">Sadewa</h1>
+        <span class="brand-tagline">Sprite Builder</span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button id="btn-install" class="btn btn-ghost" style="display:none" title="Install App">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Install
+      </button>
+      <button id="btn-export-all" class="btn btn-primary" title="Export all animations">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export All
+      </button>
+    </div>
+  </header>
+
+  <!-- ══════════════════════════════════
+       MAIN LAYOUT
+  ══════════════════════════════════ -->
+  <main class="app-layout">
+
+    <!-- ── LEFT PANEL: Controls ── -->
+    <aside class="panel panel-left" id="panel-controls">
+
+      <!-- Drop Zone -->
+      <section class="card drop-zone" id="drop-zone" role="region" aria-label="File drop zone">
+        <div class="drop-zone-inner">
+          <div class="drop-icon" aria-hidden="true">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+          </div>
+          <p class="drop-title">Drop PNG files or folders</p>
+          <p class="drop-hint">Supports animation folders (idle/, run/, attack/)</p>
+          <button class="btn btn-outline" id="btn-browse">Browse Files</button>
+          <input type="file" id="file-input" accept="image/png" multiple style="display:none" />
+        </div>
+      </section>
+
+      <!-- Animation List -->
+      <section class="card" id="section-animations" style="display:none">
+        <div class="card-header">
+          <h2 class="card-title">Animations</h2>
+          <button class="btn btn-ghost btn-sm" id="btn-clear-all" title="Clear all">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+          </button>
+        </div>
+        <ul class="animation-list" id="animation-list" role="list"></ul>
+      </section>
+
+      <!-- Sprite Settings -->
+      <section class="card">
+        <h2 class="card-title">Sprite Settings</h2>
+
+        <div class="form-group">
+          <label class="form-label">Frame Size</label>
+          <div class="btn-group" role="group" aria-label="Frame size">
+            <button class="btn-option" data-group="frame-size" data-value="64">64</button>
+            <button class="btn-option" data-group="frame-size" data-value="128">128</button>
+            <button class="btn-option active" data-group="frame-size" data-value="256">256</button>
+            <button class="btn-option" data-group="frame-size" data-value="512">512</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Columns</label>
+          <div class="btn-group" role="group" aria-label="Column count">
+            <button class="btn-option" data-group="columns" data-value="4">4</button>
+            <button class="btn-option active" data-group="columns" data-value="8">8</button>
+            <button class="btn-option" data-group="columns" data-value="16">16</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">FPS</label>
+          <div class="range-row">
+            <input type="range" id="fps-slider" min="1" max="60" value="12" class="range-input" />
+            <span class="range-value" id="fps-value">12</span>
+          </div>
+        </div>
+
+        <div class="toggle-list">
+          <label class="toggle-row">
+            <span>Auto Crop Transparent</span>
+            <input type="checkbox" id="toggle-autocrop" checked class="toggle-input" role="switch" />
+            <span class="toggle-switch" aria-hidden="true"></span>
+          </label>
+          <label class="toggle-row">
+            <span>Auto Center Sprite</span>
+            <input type="checkbox" id="toggle-autocenter" checked class="toggle-input" role="switch" />
+            <span class="toggle-switch" aria-hidden="true"></span>
+          </label>
+          <label class="toggle-row">
+            <span>Auto Padding</span>
+            <input type="checkbox" id="toggle-autopadding" checked class="toggle-input" role="switch" />
+            <span class="toggle-switch" aria-hidden="true"></span>
+          </label>
+          <label class="toggle-row">
+            <span>Transparent Background</span>
+            <input type="checkbox" id="toggle-transparent" checked class="toggle-input" role="switch" />
+            <span class="toggle-switch" aria-hidden="true"></span>
+          </label>
+        </div>
+      </section>
+
+    </aside>
+
+    <!-- ── CENTER: Preview ── -->
+    <section class="panel panel-center" id="panel-preview">
+
+      <!-- Tab Bar -->
+      <div class="tab-bar">
+        <button class="tab active" data-tab="sprite">Sprite Sheet</button>
+        <button class="tab" data-tab="camera">Camera Preview</button>
+      </div>
+
+      <!-- Sprite Sheet Tab -->
+      <div class="tab-content" id="tab-sprite">
+        <div class="preview-toolbar">
+          <span class="preview-info" id="sprite-info">No frames loaded</span>
+          <div class="preview-zoom">
+            <button class="btn btn-ghost btn-icon" id="btn-zoom-out" title="Zoom out">−</button>
+            <span id="zoom-level">100%</span>
+            <button class="btn btn-ghost btn-icon" id="btn-zoom-in" title="Zoom in">+</button>
+            <button class="btn btn-ghost btn-icon" id="btn-zoom-fit" title="Fit to view">⊡</button>
+          </div>
+        </div>
+        <div class="canvas-wrapper" id="sprite-canvas-wrapper">
+          <div class="canvas-container" id="sprite-canvas-container">
+            <canvas id="sprite-canvas"></canvas>
+          </div>
+          <!-- Empty state -->
+          <div class="empty-state" id="sprite-empty">
+            <div class="empty-icon" aria-hidden="true">
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+                <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+              </svg>
+            </div>
+            <p>Drop PNG files to build your sprite sheet</p>
+          </div>
+        </div>
+        <!-- Frame Strip -->
+        <div class="frame-strip" id="frame-strip" style="display:none">
+          <div class="frame-strip-inner" id="frame-strip-inner"></div>
+        </div>
+        <!-- Export Bar -->
+        <div class="export-bar" id="export-bar" style="display:none">
+          <div class="export-info" id="export-info"></div>
+          <div class="export-actions">
+            <button class="btn btn-outline btn-sm" id="btn-export-json">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              JSON
+            </button>
+            <button class="btn btn-primary btn-sm" id="btn-export-png">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              PNG
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Camera Preview Tab -->
+      <div class="tab-content hidden" id="tab-camera">
+        <div class="preview-toolbar">
+          <span class="preview-info" id="camera-info">Isometric RTS Preview</span>
+          <div class="btn-group" style="gap:4px">
+            <button class="btn-option active" data-group="cam-preset" data-value="classic">Classic RTS</button>
+            <button class="btn-option" data-group="cam-preset" data-value="topdown">Top Down</button>
+            <button class="btn-option" data-group="cam-preset" data-value="moba">MOBA</button>
+            <button class="btn-option" data-group="cam-preset" data-value="custom">Custom</button>
+          </div>
+        </div>
+        <div class="canvas-wrapper">
+          <canvas id="camera-canvas"></canvas>
+          <div class="safe-area-warn hidden" id="safe-area-warn">
+            ⚠ Sprite exceeds safe area — parts will be clipped on export
+          </div>
+        </div>
+        <div class="export-bar">
+          <div class="export-info" id="camera-export-info">Adjust controls then export</div>
+          <div class="export-actions">
+            <button class="btn btn-primary btn-sm" id="btn-export-camera">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Export Preview
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ── RIGHT PANEL: Camera Controls ── -->
+    <aside class="panel panel-right" id="panel-camera">
+
+      <!-- Camera Controls -->
+      <section class="card">
+        <h2 class="card-title">Camera</h2>
+
+        <div class="form-group">
+          <label class="form-label">Height <span class="value-badge" id="cam-height-val">60°</span></label>
+          <input type="range" id="cam-height" min="0" max="90" value="60" class="range-input" />
+          <div class="range-labels"><span>0° Side</span><span>90° Top</span></div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Rotation</label>
+          <div class="direction-pad" id="cam-rotation-pad">
+            <button class="dir-btn" data-value="315">↖ NW</button>
+            <button class="dir-btn" data-value="0">↑ N</button>
+            <button class="dir-btn" data-value="45">↗ NE</button>
+            <button class="dir-btn" data-value="270">← W</button>
+            <div class="dir-center" id="cam-rot-display">0°</div>
+            <button class="dir-btn" data-value="90">→ E</button>
+            <button class="dir-btn" data-value="225">↙ SW</button>
+            <button class="dir-btn" data-value="180">↓ S</button>
+            <button class="dir-btn" data-value="135">↘ SE</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Projection</label>
+          <div class="btn-group">
+            <button class="btn-option active" data-group="projection" data-value="orthographic">Ortho</button>
+            <button class="btn-option" data-group="projection" data-value="isometric">Isometric</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Zoom <span class="value-badge" id="cam-zoom-val">100%</span></label>
+          <input type="range" id="cam-zoom" min="25" max="300" value="100" class="range-input" />
+        </div>
+      </section>
+
+      <!-- Character -->
+      <section class="card">
+        <h2 class="card-title">Character</h2>
+
+        <div class="form-group">
+          <label class="form-label">Facing Direction</label>
+          <div class="direction-pad" id="char-rotation-pad">
+            <button class="dir-btn" data-value="315">↖</button>
+            <button class="dir-btn active" data-value="0">↑</button>
+            <button class="dir-btn" data-value="45">↗</button>
+            <button class="dir-btn" data-value="270">←</button>
+            <div class="dir-center" id="char-rot-display">0°</div>
+            <button class="dir-btn" data-value="90">→</button>
+            <button class="dir-btn" data-value="225">↙</button>
+            <button class="dir-btn" data-value="180">↓</button>
+            <button class="dir-btn" data-value="135">↘</button>
+          </div>
+        </div>
+
+        <!-- Playback -->
+        <div class="form-group">
+          <label class="form-label">Playback</label>
+          <div class="playback-controls">
+            <button class="btn btn-ghost btn-icon" id="btn-prev-frame" title="Prev frame">‹</button>
+            <button class="btn btn-outline btn-icon" id="btn-play-pause" title="Play / Pause">▶</button>
+            <button class="btn btn-ghost btn-icon" id="btn-next-frame" title="Next frame">›</button>
+            <span class="frame-counter" id="frame-counter">0 / 0</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Lighting -->
+      <section class="card">
+        <h2 class="card-title">Lighting</h2>
+
+        <div class="form-group">
+          <label class="form-label">Direction</label>
+          <div class="light-grid">
+            <button class="light-btn active" data-value="top-left">↖ TL</button>
+            <button class="light-btn" data-value="top-right">↗ TR</button>
+            <button class="light-btn" data-value="bottom-left">↙ BL</button>
+            <button class="light-btn" data-value="bottom-right">↘ BR</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Intensity <span class="value-badge" id="light-intensity-val">60%</span></label>
+          <input type="range" id="light-intensity" min="0" max="100" value="60" class="range-input" />
+        </div>
+
+        <div class="toggle-list">
+          <label class="toggle-row">
+            <span>Shadow</span>
+            <input type="checkbox" id="toggle-shadow" checked class="toggle-input" role="switch" />
+            <span class="toggle-switch" aria-hidden="true"></span>
+          </label>
+        </div>
+      </section>
+
+      <!-- Scene Background -->
+      <section class="card">
+        <h2 class="card-title">Scene</h2>
+
+        <div class="form-group">
+          <label class="form-label">Background</label>
+          <div class="btn-group">
+            <button class="btn-option active" data-group="bg" data-value="checkerboard">Checker</button>
+            <button class="btn-option" data-group="bg" data-value="transparent">Alpha</button>
+            <button class="btn-option" data-group="bg" data-value="solid">Solid</button>
+          </div>
+        </div>
+
+        <div class="form-group" id="bg-color-group" style="display:none">
+          <label class="form-label">Color</label>
+          <input type="color" id="bg-color" value="#1a1a2e" class="color-picker" />
+        </div>
+
+        <div class="toggle-list">
+          <label class="toggle-row">
+            <span>Show Grid</span>
+            <input type="checkbox" id="toggle-grid" checked class="toggle-input" role="switch" />
+            <span class="toggle-switch" aria-hidden="true"></span>
+          </label>
+          <label class="toggle-row">
+            <span>Safe Area</span>
+            <input type="checkbox" id="toggle-safe-area" checked class="toggle-input" role="switch" />
+            <span class="toggle-switch" aria-hidden="true"></span>
+          </label>
+        </div>
+      </section>
+
+    </aside>
+  </main>
+
+  <!-- ══════════════════════════════════
+       TOAST NOTIFICATIONS
+  ══════════════════════════════════ -->
+  <div class="toast-container" id="toast-container" aria-live="polite"></div>
+
+  <!-- ══════════════════════════════════
+       LOADING OVERLAY
+  ══════════════════════════════════ -->
+  <div class="loading-overlay hidden" id="loading-overlay">
+    <div class="loading-card">
+      <div class="spinner" aria-hidden="true"></div>
+      <p class="loading-text" id="loading-text">Processing frames…</p>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
